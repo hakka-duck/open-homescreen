@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model HomeScreen {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  title     String   @db.Text
+  url       String   @db.Text
+  target    String   @default("_blank") @db.Text
+  icon      String   @db.Text
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+
+  @@map("op_homescreens")
+}
+
+model User {
+  id          Int          @id @default(autoincrement())
+  username    String       @unique
+  displayName String?
+  password    String       @db.Text
+  HomeScreen  HomeScreen[]
+  Session     Session[]
+
+  @@map("op_users")
+}
+
+model OpOption {
+  id          Int      @id @default(autoincrement())
+  optionName  String   @unique
+  optionValue String
+  autoload    String   @default("yes") // 自動加載選項，可設置為 'yes' 或 'no'
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([optionName])
+  @@map("op_options")
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("op_sessions")
+}
